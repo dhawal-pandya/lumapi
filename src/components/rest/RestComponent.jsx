@@ -1,26 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CodeEditor from '../ui/CodeEditor';
+import { users } from '../../lib/mock-data';
 
 const RestComponent = () => {
-  const [request, setRequest] = useState('GET /users/1');
+  const [request, setRequest] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [scenario, setScenario] = useState('single'); // 'single' or 'list'
+  const [useQueryParams, setUseQueryParams] = useState(false);
+
+  useEffect(() => {
+    updateRequest();
+  }, [scenario, useQueryParams]);
+
+  const updateRequest = () => {
+    if (scenario === 'single') {
+      setRequest('GET /users/1');
+    } else {
+      let req = 'GET /users';
+      if (useQueryParams) {
+        req += '?sort=name';
+      }
+      setRequest(req);
+    }
+  };
 
   const handleSend = () => {
     setLoading(true);
+    setResponse('');
     const startTime = performance.now();
+
+    let delay = 300; // Base delay
+    if (scenario === 'list') {
+      delay += 150; // Extra delay for fetching a list
+      if (useQueryParams) {
+        delay += 150; // Extra delay for sorting
+      }
+    }
+
     // Simulate API call
     setTimeout(() => {
       const endTime = performance.now();
       setTimer(endTime - startTime);
-      setResponse(JSON.stringify({
-        id: 1,
-        name: 'Albus'
-      }, null, 2));
+      if (scenario === 'single') {
+        setResponse(JSON.stringify(users[0], null, 2));
+      } else {
+        let usersData = [...users];
+        if (useQueryParams) {
+          usersData.sort((a, b) => a.name.localeCompare(b.name));
+        }
+        setResponse(JSON.stringify(usersData, null, 2));
+      }
       setLoading(false);
-    }, 300);
+    }, delay);
   };
 
   return (
@@ -58,6 +92,16 @@ const RestComponent = () => {
             </ul>
           </div>
         </div>
+      </div>
+      <div className="flex items-center mb-4">
+        <button onClick={() => setScenario('single')} className={`mr-2 py-1 px-3 rounded ${scenario === 'single' ? 'bg-blue-600' : 'bg-gray-700'}`}>Single User</button>
+        <button onClick={() => setScenario('list')} className={`py-1 px-3 rounded ${scenario === 'list' ? 'bg-blue-600' : 'bg-gray-700'}`}>User List</button>
+        {scenario === 'list' && (
+          <div className="ml-4 flex items-center">
+            <input type="checkbox" id="queryParams" checked={useQueryParams} onChange={() => setUseQueryParams(!useQueryParams)} />
+            <label htmlFor="queryParams" className="ml-2">Add query params? (?sort=name)</label>
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>

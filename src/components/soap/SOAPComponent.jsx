@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CodeEditor from '../ui/CodeEditor';
+import { users } from '../../lib/mock-data';
 
 const SOAPComponent = () => {
-  const [request, setRequest] = useState(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+  const [request, setRequest] = useState('');
+  const [response, setResponse] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [scenario, setScenario] = useState('single'); // 'single' or 'list'
+
+  const singleUserRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
   xmlns:user="http://example.com/user">
   <soapenv:Header/>
   <soapenv:Body>
@@ -11,25 +18,59 @@ const SOAPComponent = () => {
       <user:id>1</user:id>
     </user:GetUserRequest>
   </soapenv:Body>
-</soapenv:Envelope>`);
-  const [response, setResponse] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [timer, setTimer] = useState(0);
+</soapenv:Envelope>`;
+
+  const listUsersRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:user="http://example.com/user">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <user:ListUsersRequest/>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+
+  const singleUserResponse = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Body>
+    <user:GetUserResponse xmlns:user="http://example.com/user">
+      <user:id>${users[0].id}</user:id>
+      <user:name>${users[0].name}</user:name>
+      <user:email>${users[0].email}</user:email>
+    </user:GetUserResponse>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+
+  const listUsersResponse = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Body>
+    <user:ListUsersResponse xmlns:user="http://example.com/user">
+      ${users.map(user => `<user:user>
+        <user:id>${user.id}</user:id>
+        <user:name>${user.name}</user:name>
+        <user:email>${user.email}</user:email>
+      </user:user>`).join('')}
+    </user:ListUsersResponse>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+
+  useEffect(() => {
+    if (scenario === 'single') {
+      setRequest(singleUserRequest);
+    } else {
+      setRequest(listUsersRequest);
+    }
+  }, [scenario]);
 
   const handleSend = () => {
     setLoading(true);
+    setResponse('');
     const startTime = performance.now();
     // Simulate API call
     setTimeout(() => {
       const endTime = performance.now();
       setTimer(endTime - startTime);
-      setResponse(`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-  <soapenv:Body>
-    <user:GetUserResponse xmlns:user="http://example.com/user">
-      <user:name>Albus</user:name>
-    </user:GetUserResponse>
-  </soapenv:Body>
-</soapenv:Envelope>`);
+      if (scenario === 'single') {
+        setResponse(singleUserResponse);
+      } else {
+        setResponse(listUsersResponse);
+      }
       setLoading(false);
     }, 800);
   };
@@ -69,6 +110,10 @@ const SOAPComponent = () => {
             </ul>
           </div>
         </div>
+      </div>
+      <div className="flex items-center mb-4">
+        <button onClick={() => setScenario('single')} className={`mr-2 py-1 px-3 rounded ${scenario === 'single' ? 'bg-gray-600' : 'bg-gray-700'}`}>Single User</button>
+        <button onClick={() => setScenario('list')} className={`py-1 px-3 rounded ${scenario === 'list' ? 'bg-gray-600' : 'bg-gray-700'}`}>User List</button>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>

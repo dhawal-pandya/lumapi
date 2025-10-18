@@ -1,37 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CodeEditor from '../ui/CodeEditor';
+import { users } from '../../lib/mock-data';
 
 const GRPCComponent = () => {
-  const [proto, setProto] = useState(`syntax = "proto3";
-
-service UserService {
-  rpc GetUser(GetUserRequest) returns (User);
-}
-
-message GetUserRequest {
-  int32 id = 1;
-}
-
-message User {
-  int32 id = 1;
-  string name = 2;
-}`);
+  const [proto, setProto] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [scenario, setScenario] = useState('single'); // 'single' or 'list'
+
+  const protoContent = `syntax = "proto3";
+
+service UserService {
+  rpc GetUser (GetUserRequest) returns (User);
+  rpc ListUsers (ListUsersRequest) returns (UserList);
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message ListUsersRequest {
+  // Could be empty or include pagination fields
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message UserList {
+  repeated User users = 1;
+}
+`;
+
+  useEffect(() => {
+    setProto(protoContent);
+  }, []);
 
   const handleSend = () => {
     setLoading(true);
+    setResponse('');
     const startTime = performance.now();
     // Simulate API call
     setTimeout(() => {
       const endTime = performance.now();
       setTimer(endTime - startTime);
-      setResponse(JSON.stringify({
-        id: 1,
-        name: 'Albus'
-      }, null, 2));
+      if (scenario === 'single') {
+        setResponse(JSON.stringify(users[0], null, 2));
+      } else {
+        setResponse(JSON.stringify({ users: users }, null, 2));
+      }
       setLoading(false);
     }, 100);
   };
@@ -71,6 +92,10 @@ message User {
             </ul>
           </div>
         </div>
+      </div>
+      <div className="flex items-center mb-4">
+        <button onClick={() => setScenario('single')} className={`mr-2 py-1 px-3 rounded ${scenario === 'single' ? 'bg-green-600' : 'bg-gray-700'}`}>GetUser</button>
+        <button onClick={() => setScenario('list')} className={`py-1 px-3 rounded ${scenario === 'list' ? 'bg-green-600' : 'bg-gray-700'}`}>ListUsers</button>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>

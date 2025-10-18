@@ -1,35 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CodeEditor from '../ui/CodeEditor';
+import { users } from '../../lib/mock-data';
 
 const GraphQLComponent = () => {
-  const [request, setRequest] = useState(`{
-  user(id: 1) {
+  const [request, setRequest] = useState('');
+  const [response, setResponse] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [scenario, setScenario] = useState('single'); // 'single' or 'list'
+  const [fetchNameOnly, setFetchNameOnly] = useState(false);
+
+  useEffect(() => {
+    updateRequest();
+  }, [scenario, fetchNameOnly]);
+
+  const updateRequest = () => {
+    if (scenario === 'single') {
+      setRequest(`query GetUser {
+  user(id: "1") {
+    id
     name
     email
   }
 }`);
-  const [response, setResponse] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [timer, setTimer] = useState(0);
+    } else {
+      if (fetchNameOnly) {
+        setRequest(`query GetUsers {
+  users {
+    name
+  }
+}`);
+      } else {
+        setRequest(`query GetUsers {
+  users {
+    id
+    name
+  }
+}`);
+      }
+    }
+  };
 
   const handleSend = () => {
     setLoading(true);
+    setResponse('');
     const startTime = performance.now();
+
+    let delay = 200; // Base delay for GraphQL
+    if (scenario === 'list') {
+      delay += 100; // Extra delay for fetching a list
+      if (fetchNameOnly) {
+        delay -= 25; // Slightly faster when fetching less data
+      }
+    }
+
     // Simulate API call
     setTimeout(() => {
       const endTime = performance.now();
       setTimer(endTime - startTime);
-      setResponse(JSON.stringify({
-        data: {
-          user: {
-            name: 'Albus',
-            email: 'a@b.com'
+      if (scenario === 'single') {
+        setResponse(JSON.stringify({
+          data: {
+            user: users[0]
           }
+        }, null, 2));
+      } else {
+        let usersData;
+        if (fetchNameOnly) {
+          usersData = users.map(user => ({ name: user.name }));
+        } else {
+          usersData = users.map(user => ({ id: user.id, name: user.name }));
         }
-      }, null, 2));
+        setResponse(JSON.stringify({
+          data: {
+            users: usersData
+          }
+        }, null, 2));
+      }
       setLoading(false);
-    }, 200);
+    }, delay);
   };
 
   return (
@@ -67,6 +117,16 @@ const GraphQLComponent = () => {
             </ul>
           </div>
         </div>
+      </div>
+      <div className="flex items-center mb-4">
+        <button onClick={() => setScenario('single')} className={`mr-2 py-1 px-3 rounded ${scenario === 'single' ? 'bg-purple-600' : 'bg-gray-700'}`}>Single User</button>
+        <button onClick={() => setScenario('list')} className={`py-1 px-3 rounded ${scenario === 'list' ? 'bg-purple-600' : 'bg-gray-700'}`}>User List</button>
+        {scenario === 'list' && (
+          <div className="ml-4 flex items-center">
+            <input type="checkbox" id="fetchNameOnly" checked={fetchNameOnly} onChange={() => setFetchNameOnly(!fetchNameOnly)} />
+            <label htmlFor="fetchNameOnly" className="ml-2">Fetch name only</label>
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>

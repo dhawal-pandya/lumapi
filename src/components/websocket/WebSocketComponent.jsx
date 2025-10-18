@@ -1,36 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CodeEditor from '../ui/CodeEditor';
 
+const ChatUser = ({ name, onSendMessage }) => {
+  const [message, setMessage] = useState('');
+
+  const handleSend = () => {
+    if (message.trim()) {
+      onSendMessage(name, message);
+      setMessage('');
+    }
+  };
+
+  return (
+    <div className="flex items-center mt-2">
+      <span className="font-semibold w-24">{name}:</span>
+      <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        className="flex-grow bg-gray-900 border border-gray-600 rounded px-2 py-1"
+        onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+      />
+      <button onClick={handleSend} className="ml-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded transition-colors duration-300">
+        Send
+      </button>
+    </div>
+  );
+};
+
 const WebSocketComponent = () => {
-  const [message, setMessage] = useState('Hello');
   const [log, setLog] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [connected, setConnected] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [receiving, setReceiving] = useState(false);
 
   const handleConnect = () => {
     setConnecting(true);
-    setLog('Connecting...\n');
+    setLog('Connecting to chat server...\n');
     setTimeout(() => {
       setConnecting(false);
       setConnected(true);
-      setLog(prevLog => prevLog + 'Connected!\n');
+      setLog(prevLog => prevLog + 'Connected! You can now send messages.\n');
     }, 1000);
   };
 
-  const handleSend = () => {
-    setSending(true);
-    setLog(prevLog => prevLog + `Sent: ${message}\n`);
-    setTimeout(() => {
-      setSending(false);
-      setReceiving(true);
-      setTimeout(() => {
-        setReceiving(false);
-        setLog(prevLog => prevLog + 'Received: Hi there!\n');
-      }, 500);
-    }, 500);
+  const handleSendMessage = (user, message) => {
+    const formattedMessage = `[${user}]: ${message}\n`;
+    // Simulate sending message to server and receiving it back
+    setLog(prevLog => prevLog + formattedMessage);
   };
 
   return (
@@ -38,78 +55,35 @@ const WebSocketComponent = () => {
       <div className="mb-4 p-4 bg-gray-800 border border-blue-500 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-2 text-blue-400">WebSocket</h2>
         <p className="mb-4 text-gray-300">
-          WebSocket is a communication protocol that provides a full-duplex, persistent connection between a client and a server over a single TCP connection. Unlike the request-response model of HTTP, WebSockets allow for real-time, bidirectional communication, making them ideal for applications that require low-latency updates and interactive features.
+          This simulation demonstrates a real-time chat application powered by WebSockets. Once connected, multiple users can send messages, and the chat history updates instantly for everyone, showcasing the bidirectional and low-latency capabilities of the protocol.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-300">
-          <div>
-            <h3 className="font-bold text-blue-400">Pros:</h3>
-            <ul className="list-disc list-inside">
-              <li><span className="font-semibold">Real-time Communication:</span> Enables instant data exchange between client and server.</li>
-              <li><span className="font-semibold">Low Latency:</span> Reduces the overhead of establishing new connections for each message.</li>
-              <li><span className="font-semibold">Bidirectional:</span> Both the client and server can send messages at any time.</li>
-              <li><span className="font-semibold">Efficient:</span> Less overhead compared to HTTP polling or long-polling.</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-bold text-blue-400">Cons:</h3>
-            <ul className="list-disc list-inside">
-              <li><span className="font-semibold">Stateful:</span> Requires both the client and server to maintain the connection state.</li>
-              <li><span className="font-semibold">Complexity:</span> Can be more complex to implement and manage than traditional HTTP.</li>
-              <li><span className="font-semibold">Scalability Challenges:</span> Managing a large number of persistent connections can be a challenge.</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-bold text-blue-400">Common Use Cases:</h3>
-            <ul className="list-disc list-inside">
-              <li>Real-time chat applications.</li>
-              <li>Live sports or financial data feeds.</li>
-              <li>Multiplayer online games.</li>
-              <li>Collaborative editing tools.</li>
-            </ul>
-          </div>
-        </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <h3 className="text-xl font-bold mb-2">Client</h3>
-          <CodeEditor language="text" value={message} onChange={setMessage} />
+          <h3 className="text-xl font-bold mb-2">Chat Room</h3>
+          {!connected ? (
+            <button onClick={handleConnect} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4 transition-colors duration-300" disabled={connecting}>
+              {connecting ? 'Connecting...' : 'Connect to Chat'}
+            </button>
+          ) : (
+            <div>
+              <ChatUser name="Harry" onSendMessage={handleSendMessage} />
+              <ChatUser name="Hermione" onSendMessage={handleSendMessage} />
+              <ChatUser name="Ron" onSendMessage={handleSendMessage} />
+            </div>
+          )}
         </div>
         <div>
-          <h3 className="text-xl font-bold mb-2">Log</h3>
+          <h3 className="text-xl font-bold mb-2">Chat History</h3>
           <CodeEditor language="text" value={log} />
         </div>
       </div>
-      {!connected ? (
-        <button onClick={handleConnect} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4 transition-colors duration-300" disabled={connecting}>
-          {connecting ? 'Connecting...' : 'Connect'}
-        </button>
-      ) : (
-        <button onClick={handleSend} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4 transition-colors duration-300" disabled={sending || receiving}>
-          {sending ? 'Sending...' : 'Send'}
-        </button>
-      )}
       {connecting && (
         <motion.div
           className="absolute top-1/2 left-1/4 w-8 h-8 bg-blue-500 rounded-full shadow-lg"
           initial={{ x: 0, y: 0, opacity: 0 }}
           animate={{ x: '200%', y: 0, opacity: 1 }}
           transition={{ duration: 1, ease: 'easeInOut' }}
-        />
-      )}
-      {sending && (
-        <motion.div
-          className="absolute top-1/2 left-1/4 w-4 h-4 bg-green-500 rounded-full shadow-lg"
-          initial={{ x: 0, y: 0, opacity: 0 }}
-          animate={{ x: '400%', y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, ease: 'easeInOut' }}
-        />
-      )}
-      {receiving && (
-        <motion.div
-          className="absolute top-1/2 right-1/4 w-4 h-4 bg-yellow-500 rounded-full shadow-lg"
-          initial={{ x: 0, y: 0, opacity: 0 }}
-          animate={{ x: '-400%', y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, ease: 'easeInOut' }}
         />
       )}
     </div>
