@@ -55,8 +55,37 @@ const WebSocketComponent = () => {
       <div className="mb-4 p-4 bg-gray-800 border border-blue-500 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-2 text-blue-400">WebSocket</h2>
         <p className="mb-4 text-gray-300">
-          This simulation demonstrates a real-time chat application powered by WebSockets. Once connected, multiple users can send messages, and the chat history updates instantly for everyone, showcasing the bidirectional and low-latency capabilities of the protocol.
+          WebSocket provides a full-duplex communication channel over a single, long-lived TCP connection. It allows for real-time, event-driven communication where both the client and server can send messages to each other at any time. This simulation demonstrates a real-time chat application powered by WebSockets.
         </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-300">
+          <div>
+            <h3 className="font-bold text-blue-400">Pros:</h3>
+            <ul className="list-disc list-inside">
+              <li><span className="font-semibold">Low Latency:</span> Establishes a persistent connection, eliminating the overhead of creating new connections for each message.</li>
+              <li><span className="font-semibold">Bidirectional Communication:</span> Both client and server can send data independently, enabling real-time interaction.</li>
+              <li><span className="font-semibold">High Efficiency:</span> Reduces network traffic and improves performance by avoiding repetitive HTTP headers.</li>
+              <li><span className="font-semibold">Stateful:</span> Maintains the connection state, simplifying the management of real-time applications.</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold text-blue-400">Cons:</h3>
+            <ul className="list-disc list-inside">
+              <li><span className="font-semibold">Complexity:</span> Can be more complex to implement and manage than traditional HTTP.</li>
+              <li><span className="font-semibold">Scalability Challenges:</span> Managing a large number of persistent connections can be resource-intensive on the server.</li>
+              <li><span className="font-semibold">Limited Browser Support:</span> While widely supported in modern browsers, older browsers may require fallbacks.</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold text-blue-400">Common Use Cases:</h3>
+            <ul className="list-disc list-inside">
+              <li>Real-time chat applications.</li>
+              <li>Live sports tickers and score updates.</li>
+              <li>Collaborative editing tools (e.g., Google Docs).</li>
+              <li>Multiplayer online games.</li>
+              <li>Financial trading platforms.</li>
+            </ul>
+          </div>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
