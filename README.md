@@ -4,6 +4,8 @@
 
 LumAPI is a single-page interactive website that visually explains and simulates different API communication paradigms. It's an API museum, playground, and visual guide all in one, designed to help developers and students understand the nuances of various API protocols in a hands-on, engaging way.
 
+![LumAPI](https://github.com/dhawal-pandya/lumapi/blob/main/image.png)
+
 ## Core Features
 
 *   **Protocol Exploration:** Dive into detailed explanations and interactive simulations for REST, GraphQL, gRPC, WebSocket, MQTT, and SOAP.
